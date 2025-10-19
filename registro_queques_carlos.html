@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de compra de queques 🍰</title>
+<meta name="theme-color" content="#fef9f3">
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to bottom right, #fef9f3, #d6f0f5);
+  color: #444;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+}
+h1 { text-align:center; color:#d67ba8; margin-bottom:1rem; }
+.container {
+  max-width:500px; margin:0 auto; background:#fffaf5; border-radius:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1); padding:20px;
+}
+.add-client { display:flex; gap:10px; margin-bottom:20px; }
+.add-client input { flex:1; padding:10px; border-radius:10px; border:1px solid #ccc; font-size:1rem;}
+.add-client button { background:#ffd3e2; border:none; border-radius:10px; padding:10px 15px; font-weight:bold; color:#5a3e53; cursor:pointer;}
+.add-client button:hover { background:#ffc2d9;}
+.client { background:#fff; border-radius:15px; padding:15px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.05); display:flex; flex-direction:column;}
+.client-header { display:flex; justify-content:space-between; align-items:center; }
+.client h2 { margin:0; color:#7a5682; font-size:1.2rem; }
+.delete-btn { background:#ffb8b8; border:none; border-radius:50%; width:28px; height:28px; font-size:1rem; cursor:pointer; color:white; font-weight:bold; line-height:0; }
+.delete-btn:hover { background:#ff8a8a; }
+.cakes { margin-top:10px; font-size:1.8rem; min-height:1.8rem; }
+.bonus-cake { 
+  display:inline-block; 
+  animation: blinkBounce 1s infinite;
+}
+@keyframes blinkBounce {
+  0%, 100% { opacity:1; transform: scale(1); }
+  25% { opacity:0.6; transform: scale(1.2) translateY(-5px); }
+  50% { opacity:1; transform: scale(1.1) translateY(-10px); }
+  75% { opacity:0.6; transform: scale(1.2) translateY(-5px); }
+}
+.add-cake-btn { margin-top:10px; background:#ffd3e2; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; color:#5a3e53; font-weight:bold;}
+.add-cake-btn:hover { background:#ffc2d9; }
+.message { color:#d67ba8; margin-top:5px; font-size:0.95rem; font-weight:bold;}
+</style>
+</head>
+<body>
+<h1>Registro de compra de queques</h1>
+<div class="container">
+<div class="add-client">
+<input type="text" id="clientName" placeholder="Nombre del cliente...">
+<button onclick="addClient()">Agregar</button>
+</div>
+<div id="clientList"></div>
+</div>
+
+<script>
+const clientList = document.getElementById('clientList');
+let clients = JSON.parse(localStorage.getItem('clients')) || [];
+
+function saveData() { localStorage.setItem('clients', JSON.stringify(clients)); }
+
+function renderClients() {
+  clientList.innerHTML = '';
+  clients.forEach((client,index)=>{
+    const div=document.createElement('div'); div.className='client';
+
+    const header=document.createElement('div'); header.className='client-header';
+    const name=document.createElement('h2'); name.textContent=client.name;
+    const deleteBtn=document.createElement('button'); deleteBtn.className='delete-btn'; deleteBtn.textContent='×';
+    deleteBtn.onclick=()=>deleteClient(index);
+    header.appendChild(name); header.appendChild(deleteBtn);
+
+    const cakesDiv=document.createElement('div'); cakesDiv.className='cakes';
+    const messageDiv=document.createElement('div'); messageDiv.className='message';
+
+    let normalCakes = '🍰'.repeat(Math.min(client.count, 7));
+
+    let bonusCake = '';
+    if(client.count === 8) {
+      bonusCake = '<span class="bonus-cake">🧁</span>';
+      messageDiv.textContent = '¡Bonus! Queque gratis';
+    } else if(client.count > 8){
+      messageDiv.textContent = '¡Has alcanzado el máximo!';
+    }
+
+    cakesDiv.innerHTML = normalCakes + bonusCake;
+
+    const addCakeBtn=document.createElement('button'); addCakeBtn.className='add-cake-btn'; addCakeBtn.textContent='+';
+
+    addCakeBtn.onclick=()=>{
+      if(client.count < 8){
+        client.count++;
+        if(client.count === 7){
+          client.count++; // agrega el octavo queque gratis
+          messageDiv.textContent = '¡Bonus! Queque gratis';
+        } else {
+          messageDiv.textContent = '';
+        }
+      } else {
+        messageDiv.textContent = '¡Has alcanzado el máximo!';
+      }
+      saveData(); renderClients();
+    }
+
+    div.appendChild(header); div.appendChild(cakesDiv); div.appendChild(addCakeBtn); div.appendChild(messageDiv);
+    clientList.appendChild(div);
+  });
+}
+
+function addClient(){
+  const name=document.getElementById('clientName').value.trim();
+  if(name && !clients.some(c=>c.name.toLowerCase()===name.toLowerCase())){
+    clients.push({name,count:0});
+    document.getElementById('clientName').value='';
+    saveData();
+    renderClients();
+  } else { alert('Nombre vacío o repetido'); }
+}
+
+function deleteClient(index){ if(confirm(`¿Eliminar a ${clients[index].name}?`)){ clients.splice(index,1); saveData(); renderClients(); } }
+
+renderClients();
+</script>
+</body>
+</html>
